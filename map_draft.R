@@ -39,18 +39,99 @@ state_map <- state_map[!duplicated(state_map$order), ]
 blue <- colorRampPalette(c("navy","royalblue","lightskyblue"))(200)                      
 red <- colorRampPalette(c("mistyrose", "red2","darkred"))(200)
 
+state_map_unique <- state_map %>%
+  group_by(region) %>%
+  summarise(discuss = mean(discuss), long = first(long), lat = first(lat))
 
-#plot
-p <- ggplot(state_map, aes(long, lat, group = group)) +
-     geom_polygon(aes(fill = discuss),
-               colour = alpha("white", 1/2), size = 0.05)  +
+p <- ggplot(state_map, aes(long, lat, group = region)) +
+     geom_polygon(aes(fill = discuss), size = 0.5)  +
      geom_polygon(data = state_df, colour = "white", fill = NA) +
+     geom_text(data = state_map_unique, aes(label = paste("State: ", region, "Opinion on Global Warming: ", discuss)),
+            size = 2, check_overlap = TRUE) + 
      ggtitle("2023 US opinion on Global Warming") +
-     scale_fill_gradientn(colours=c(blue,"white", red))  +
      theme_void()
 
 fig <- ggplotly(p)
 
 fig
+
+
+
+# Plotly
+
+fig <- plot_ly() %>%
+  add_trace(
+    data = state_map,
+    locations = ~group,
+    type = "choropleth",
+    lon = ~long,
+    lat = ~lat,
+    text = ~paste("State: ", group, "<br>Opinion on Global Warming: ", discuss),
+    mode = "markers",
+    colorscale = "Viridis",
+    color = ~discuss,
+    cmin = min(state_map$discuss),
+    cmax = max(state_map$discuss)
+  ) %>%
+  add_trace(
+    type = "scattergeo",
+    lon = ~long,
+    lat = ~lat,
+    text = ~region,
+    mode = "none",
+    hoverinfo = "text"
+  ) %>%
+  layout(
+    title = "2023 US opinion on Global Warming",
+    geo = list(
+      scope = "usa",
+      showland = TRUE,
+      showcountries = FALSE,
+      showsubunits = TRUE,
+      subunitcolor = "white",
+      subunitwidth = 1
+    )
+  )
+
+# Show the plot
+fig
+
+
+
+# Create plotly object directly
+fig <- plot_ly() %>%
+  add_trace(
+    data = state_map,
+    type = "scattergeo",
+    # lon = ~long,
+    # lat = ~lat,
+    text = ~paste("State: ", group, "<br>Opinion on Global Warming: ", discuss),
+    mode = "markers",
+    marker = list(
+      color = ~discuss,
+      colorscale = "Viridis",
+      cmin = min(state_map$discuss),
+      cmax = max(state_map$discuss)
+    )
+  ) %>%
+  add_trace(
+    type = "scattergeo",
+    lon = ~long,
+    lat = ~lat,
+    text = ~region,
+    mode = "none",
+    hoverinfo = "text"
+  ) %>%
+  layout(
+    title = "2023 US opinion on Global Warming",
+    geo = list(
+      scope = "usa",
+      showland = TRUE,
+      showcountries = FALSE,
+      showsubunits = TRUE,
+      subunitcolor = "white",
+      subunitwidth = 1
+    )
+  )
 
 
