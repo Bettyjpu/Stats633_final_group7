@@ -56,82 +56,61 @@ fig <- ggplotly(p)
 fig
 
 
+# Method 2: Plotly
 
-# Plotly
+# Get demographic data from ACS first
 
-fig <- plot_ly() %>%
-  add_trace(
-    data = state_map,
-    locations = ~group,
-    type = "choropleth",
-    lon = ~long,
-    lat = ~lat,
-    text = ~paste("State: ", group, "<br>Opinion on Global Warming: ", discuss),
-    mode = "markers",
-    colorscale = "Viridis",
-    color = ~discuss,
-    cmin = min(state_map$discuss),
-    cmax = max(state_map$discuss)
-  ) %>%
-  add_trace(
-    type = "scattergeo",
-    lon = ~long,
-    lat = ~lat,
-    text = ~region,
-    mode = "none",
-    hoverinfo = "text"
-  ) %>%
-  layout(
-    title = "2023 US opinion on Global Warming",
-    geo = list(
-      scope = "usa",
-      showland = TRUE,
-      showcountries = FALSE,
-      showsubunits = TRUE,
-      subunitcolor = "white",
-      subunitwidth = 1
-    )
-  )
-
-# Show the plot
-fig
+## Load `tidycensus` and `viridis`
+library(tidycensus)
+library(tidyverse)
+library(viridis)
+census_api_key("e576f7744caca50c2c06e77c300cb6152622426a", install = TRUE)
+readRenviron("~/.Renviron")
 
 
+us_value <- get_acs(
+  geography = "state",
+  variables = "B25077_001",
+  year = 2023,
+  survey = "acs1",
+  geometry = TRUE,
+  resolution = "20m"
+)
 
-# Create plotly object directly
-fig <- plot_ly() %>%
-  add_trace(
-    data = state_map,
-    type = "scattergeo",
-    # lon = ~long,
-    # lat = ~lat,
-    text = ~paste("State: ", group, "<br>Opinion on Global Warming: ", discuss),
-    mode = "markers",
-    marker = list(
-      color = ~discuss,
-      colorscale = "Viridis",
-      cmin = min(state_map$discuss),
-      cmax = max(state_map$discuss)
-    )
-  ) %>%
-  add_trace(
-    type = "scattergeo",
-    lon = ~long,
-    lat = ~lat,
-    text = ~region,
-    mode = "none",
-    hoverinfo = "text"
-  ) %>%
-  layout(
-    title = "2023 US opinion on Global Warming",
-    geo = list(
-      scope = "usa",
-      showland = TRUE,
-      showcountries = FALSE,
-      showsubunits = TRUE,
-      subunitcolor = "white",
-      subunitwidth = 1
-    )
-  )
+# Plot the map with `ggiraph` and `scales`
+
+library(ggiraph)
+library(scales)
+
+us_value_shifted <- us_value %>%
+  shift_geometry(position = "outside") %>%
+  mutate(tooltip = paste(NAME, estimate, sep = ": "))
+
+gg <- ggplot(us_value_shifted, aes(fill = estimate)) + 
+  geom_sf_interactive(aes(tooltip = tooltip, data_id = NAME), 
+                      size = 0.1) + 
+  scale_fill_viridis_c(option = "plasma", labels = label_dollar()) + 
+  labs(title = "Median housing value by State, 2019",
+       caption = "Data source: 2019 1-year ACS, US Census Bureau",
+       fill = "ACS estimate") + 
+  theme_void() 
+
+girafe(ggobj = gg) %>%
+  girafe_options(opts_hover(css = "fill:cyan;"), 
+                 opts_zoom(max = 10))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
