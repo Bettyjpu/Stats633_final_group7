@@ -33,7 +33,7 @@ gg <- ggplot(us_value_shifted, aes(fill = estimate)) +
   geom_sf_interactive(aes(tooltip = tooltip, data_id = NAME), 
                       size = 0.1) + 
   scale_fill_viridis_c(option = "plasma", labels = label_dollar()) + 
-  labs(title = "Median housing value by State, 2019",
+  labs(title = "Median housing value by State, 2022",
        caption = "Data source: 2022 1-year ACS, US Census Bureau",
        fill = "ACS estimate") + 
   theme_void() 
