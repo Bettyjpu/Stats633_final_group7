@@ -7,7 +7,12 @@ library(ggiraph)
 library(scales)
 library(ggplot2)
 library(plotly)
-# library(maps)
+
+# Map
+library(ggiraph)
+library(scales)
+library(tigris)
+options(tigris_use_cache = TRUE)
 
 # Get data from ACS
 
@@ -95,16 +100,12 @@ abovepoverty_22 <- get_acs(
   resolution = "20m"
 )
 
-abovepoverty_22_shifted <- abovepoverty_22 %>%
+abovepoverty_22_merge <- merge(abovepoverty_22, pop_22, by = "NAME")
+abovepoverty_22_merge$percentage <- round((abovepoverty_22_merge$estimate / abovepoverty_22_merge$population)*100, 1)
+
+abovepoverty_22_shifted <- abovepoverty_22_merge %>%
   shift_geometry(position = "outside") %>%
-  mutate(tooltip = paste(NAME, estimate, sep = ": "))
-
-
-# Map
-library(ggiraph)
-library(scales)
-library(tigris)
-options(tigris_use_cache = TRUE)
+  mutate(tooltip = paste(NAME, ":", percentage, "% population at or above 150% poverty level"))
 
 
 # plot medium income
@@ -117,7 +118,7 @@ map_income <- ggplot(income_22_shifted, aes(fill = estimate)) +
        fill = "ACS estimate") + 
   theme_void() 
 
-girafe(ggobj = gg) %>%
+girafe(ggobj = map_income) %>%
   girafe_options(opts_hover(css = "fill:cyan;"), 
                  opts_zoom(max = 10))
 
@@ -132,7 +133,7 @@ map_edu <- ggplot(edu_22_shifted, aes(fill = percentage)) +
        fill = "ACS estimate") + 
   theme_void() 
 
-girafe(ggobj = gg) %>%
+girafe(ggobj = map_edu) %>%
   girafe_options(opts_hover(css = "fill:cyan;"), 
                  opts_zoom(max = 10))
 
@@ -147,11 +148,23 @@ map_foreign <- ggplot(foreign_22_shifted, aes(fill = percentage)) +
        fill = "ACS estimate") + 
   theme_void() 
 
-girafe(ggobj = gg) %>%
+girafe(ggobj = map_foreign) %>%
   girafe_options(opts_hover(css = "fill:cyan;"), 
                  opts_zoom(max = 10))
 
-# plot 
+# plot above poverty level
+map_abovepoverty <- ggplot(abovepoverty_22_shifted, aes(fill = percentage)) + 
+  geom_sf_interactive(aes(tooltip = tooltip, data_id = NAME), 
+                      size = 0.1) + 
+  scale_fill_viridis_c(option = "plasma") + 
+  labs(title = "Percentage of Population that are above poverty line, 2022",
+       caption = "Data source: 2022 1-year ACS, US Census Bureau",
+       fill = "ACS estimate") + 
+  theme_void() 
+
+girafe(ggobj = map_abovepoverty) %>%
+  girafe_options(opts_hover(css = "fill:cyan;"), 
+                 opts_zoom(max = 10))
 
 
 
