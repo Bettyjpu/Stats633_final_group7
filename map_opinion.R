@@ -18,7 +18,7 @@ state_23 <- subset(data_23, geotype == "state") %>%
 
 ## Select variables from state_23 that will be utilized for mapping
 state_23 <- state_23 %>%
-  select(citizens, congress, consensus, discuss, exp, happening, human, worried)
+  select(NAME, citizens, congress, consensus, discuss, exp, happening, human, worried)
 
 # Get ACS data for plotting
 # medium income in the state
@@ -32,18 +32,27 @@ acs_data <- get_acs(
 )
 
 data_merged <- merge(acs_data, state_23, by = "NAME")
+
 data_merged_shifted <- data_merged %>%
   shift_geometry(position = "outside") %>%
   mutate(tooltip_discuss = paste(NAME, ":", discuss, "% population that often discuss climate change")) %>%
-  mutate(tooltip_ = paste(NAME, ":", citizens, "% population that discuss climate change"))
+  mutate(tooltip_citizens = paste(NAME, ":", citizens, "% thinking that citizens should do more")) %>%
+  mutate(tooltip_congress = paste(NAME, ":", congress, "% thinking that the congress should do more")) %>%
+  mutate(tooltip_consensus = paste(NAME, ":", consensus, "% who believe that global warming is happening")) %>%
+  mutate(tooltip_exp = paste(NAME, ":", exp, "% personally experienced global warming")) %>%
+  mutate(tooltip_happening = paste(NAME, ":", happening, "% thinking global warming is happening")) %>%
+  mutate(tooltip_human = paste(NAME, ":", human, "% agree that global warming is caused by human activities")) %>%
+  mutate(tooltip_worried = paste(NAME, ":", worried, "% worried about global warming"))
 
 
-#Map
+#Mapping
+
+# Discuss: Estimated percentage who discuss global warming occassionally or often with friends and family
 map_discuss <- ggplot(data_merged_shifted, aes(fill = discuss)) + 
   geom_sf_interactive(aes(tooltip = tooltip_discuss, data_id = NAME), 
                       size = 0.1) + 
   scale_fill_viridis_c(option = "plasma") + 
-  labs(title = "Percentage of population that discuss climate change, 2023",
+  labs(title = "Percentage of population that often discuss climate change, 2023",
        caption = "Data source: 2023 Yale Program on Climate Change Communication",
        fill = "ACS estimate") + 
   theme_void() 
@@ -52,8 +61,19 @@ girafe(ggobj = map_discuss) %>%
   girafe_options(opts_hover(css = "fill:cyan;"), 
                  opts_zoom(max = 10))
 
+# Citizens: Estimated percentage who think citizens themselves should be doing more/much more to address global warming
+map_citizens <- ggplot(data_merged_shifted, aes(fill = citizens)) + 
+  geom_sf_interactive(aes(tooltip = tooltip_citizens, data_id = NAME), 
+                      size = 0.1) + 
+  scale_fill_viridis_c(option = "plasma") + 
+  labs(title = "Percentage of population thinking that citizens should do more, 2023",
+       caption = "Data source: 2023 Yale Program on Climate Change Communication",
+       fill = "ACS estimate") + 
+  theme_void() 
 
-
+girafe(ggobj = map_citizens) %>%
+  girafe_options(opts_hover(css = "fill:cyan;"), 
+                 opts_zoom(max = 10))
 
 
 
