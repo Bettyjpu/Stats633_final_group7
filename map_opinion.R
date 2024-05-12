@@ -54,7 +54,7 @@ map_discuss <- ggplot(data_merged_shifted, aes(fill = discuss)) +
   scale_fill_viridis_c(option = "plasma") + 
   labs(title = "Percentage of population that often discuss climate change, 2023",
        caption = "Data source: 2023 Yale Program on Climate Change Communication",
-       fill = "ACS estimate") + 
+       fill = "% state population") + 
   theme_void() 
 
 girafe(ggobj = map_discuss) %>%
@@ -68,7 +68,7 @@ map_citizens <- ggplot(data_merged_shifted, aes(fill = citizens)) +
   scale_fill_viridis_c(option = "plasma") + 
   labs(title = "Percentage of population thinking that citizens should do more, 2023",
        caption = "Data source: 2023 Yale Program on Climate Change Communication",
-       fill = "ACS estimate") + 
+       fill = "% state population") + 
   theme_void() 
 
 girafe(ggobj = map_citizens) %>%
@@ -83,7 +83,7 @@ map_congress <- ggplot(data_merged_shifted, aes(fill = congress)) +
   scale_fill_viridis_c(option = "plasma") + 
   labs(title = "Percentage of population thinking that the congress should do more, 2023",
        caption = "Data source: 2023 Yale Program on Climate Change Communication",
-       fill = "ACS estimate") + 
+       fill = "% state population") + 
   theme_void() 
 
 girafe(ggobj = map_congress) %>%
@@ -97,7 +97,7 @@ map_consensus <- ggplot(data_merged_shifted, aes(fill = consensus)) +
   scale_fill_viridis_c(option = "plasma") + 
   labs(title = "Percentage of population who believe that global warming is happening, 2023",
        caption = "Data source: 2023 Yale Program on Climate Change Communication",
-       fill = "ACS estimate") + 
+       fill = "% state population") + 
   theme_void() 
 
 girafe(ggobj = map_consensus) %>%
@@ -106,20 +106,58 @@ girafe(ggobj = map_consensus) %>%
 
 
 # Exp: Estimated percentage who somewhat/strongly agree that they have personally experienced the effects of global warming
-
 map_exp <- ggplot(data_merged_shifted, aes(fill = exp)) + 
   geom_sf_interactive(aes(tooltip = tooltip_exp, data_id = NAME), 
                       size = 0.1) + 
   scale_fill_viridis_c(option = "plasma") + 
   labs(title = "Percentage of population who believe that personally experienced global warming, 2023",
        caption = "Data source: 2023 Yale Program on Climate Change Communication",
-       fill = "ACS estimate") + 
+       fill = "% state population") + 
   theme_void() 
 
 girafe(ggobj = map_exp) %>%
   girafe_options(opts_hover(css = "fill:cyan;"), 
                  opts_zoom(max = 10))
 
-# Happening
+# Happening: Estimated percentage who think that global warming is happening
+map_happening <- ggplot(data_merged_shifted, aes(fill = happening)) + 
+  geom_sf_interactive(aes(tooltip = tooltip_happening, data_id = NAME), 
+                      size = 0.1) + 
+  scale_fill_viridis_c(option = "plasma") + 
+  labs(title = "Percentage of population who think that global warming is happening, 2023",
+       caption = "Data source: 2023 Yale Program on Climate Change Communication",
+       fill = "% state population") + 
+  theme_void() 
 
+girafe(ggobj = map_happening) %>%
+  girafe_options(opts_hover(css = "fill:cyan;"), 
+                 opts_zoom(max = 10))
+
+# Human: Estimated percentage who think that global warming is caused mostly by human activities
+map_human <- ggplot(data_merged_shifted, aes(fill = human)) + 
+  geom_sf_interactive(aes(tooltip = tooltip_human, data_id = NAME), 
+                      size = 0.1) + 
+  scale_fill_viridis_c(option = "plasma") + 
+  labs(title = "Percentage who think that global warming is caused mostly by human activities, 2023",
+       caption = "Data source: 2023 Yale Program on Climate Change Communication",
+       fill = "% state population") + 
+  theme_void() 
+
+girafe(ggobj = map_human) %>%
+  girafe_options(opts_hover(css = "fill:cyan;"), 
+                 opts_zoom(max = 10))
+
+# Worried: Estimated percentage who are somewhat/very worried about global warming
+map_worried <- ggplot(data_merged_shifted, aes(fill = worried)) + 
+  geom_sf_interactive(aes(tooltip = tooltip_worried, data_id = NAME), 
+                      size = 0.1) + 
+  scale_fill_viridis_c(option = "plasma") + 
+  labs(title = "Percentage who are somewhat/very worried about global warming, 2023",
+       caption = "Data source: 2023 Yale Program on Climate Change Communication",
+       fill = "% state population") + 
+  theme_void() 
+
+girafe(ggobj = map_worried) %>%
+  girafe_options(opts_hover(css = "fill:cyan;"), 
+                 opts_zoom(max = 10))
 
