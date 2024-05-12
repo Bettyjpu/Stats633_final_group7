@@ -77,7 +77,6 @@ girafe(ggobj = map_citizens) %>%
 
 
 # Congress: Estimated percentage who think Congress should be doing more/much more to address global warming
-
 map_congress <- ggplot(data_merged_shifted, aes(fill = congress)) + 
   geom_sf_interactive(aes(tooltip = tooltip_congress, data_id = NAME), 
                       size = 0.1) + 
@@ -91,6 +90,36 @@ girafe(ggobj = map_congress) %>%
   girafe_options(opts_hover(css = "fill:cyan;"), 
                  opts_zoom(max = 10))
 
+# Consensus: Estimated percentage who believe that most scientists think global warming is happening
+map_consensus <- ggplot(data_merged_shifted, aes(fill = consensus)) + 
+  geom_sf_interactive(aes(tooltip = tooltip_consensus, data_id = NAME), 
+                      size = 0.1) + 
+  scale_fill_viridis_c(option = "plasma") + 
+  labs(title = "Percentage of population who believe that global warming is happening, 2023",
+       caption = "Data source: 2023 Yale Program on Climate Change Communication",
+       fill = "ACS estimate") + 
+  theme_void() 
 
+girafe(ggobj = map_consensus) %>%
+  girafe_options(opts_hover(css = "fill:cyan;"), 
+                 opts_zoom(max = 10))
+
+
+# Exp: Estimated percentage who somewhat/strongly agree that they have personally experienced the effects of global warming
+
+map_exp <- ggplot(data_merged_shifted, aes(fill = exp)) + 
+  geom_sf_interactive(aes(tooltip = tooltip_exp, data_id = NAME), 
+                      size = 0.1) + 
+  scale_fill_viridis_c(option = "plasma") + 
+  labs(title = "Percentage of population who believe that personally experienced global warming, 2023",
+       caption = "Data source: 2023 Yale Program on Climate Change Communication",
+       fill = "ACS estimate") + 
+  theme_void() 
+
+girafe(ggobj = map_exp) %>%
+  girafe_options(opts_hover(css = "fill:cyan;"), 
+                 opts_zoom(max = 10))
+
+# Happening
 
 
