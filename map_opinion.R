@@ -76,6 +76,20 @@ girafe(ggobj = map_citizens) %>%
                  opts_zoom(max = 10))
 
 
+# Congress: Estimated percentage who think Congress should be doing more/much more to address global warming
+
+map_congress <- ggplot(data_merged_shifted, aes(fill = congress)) + 
+  geom_sf_interactive(aes(tooltip = tooltip_congress, data_id = NAME), 
+                      size = 0.1) + 
+  scale_fill_viridis_c(option = "plasma") + 
+  labs(title = "Percentage of population thinking that the congress should do more, 2023",
+       caption = "Data source: 2023 Yale Program on Climate Change Communication",
+       fill = "ACS estimate") + 
+  theme_void() 
+
+girafe(ggobj = map_congress) %>%
+  girafe_options(opts_hover(css = "fill:cyan;"), 
+                 opts_zoom(max = 10))
 
 
 
