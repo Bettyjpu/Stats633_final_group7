@@ -22,3 +22,4 @@ df_happeing_long <- pivot_longer(df_happening, cols = -State, names_to = "year",
 # Merge the datasets by the variables "State" and "Year"
 df_merged_ts <- Reduce(function(x, y) merge(x, y, by = c("State", "year"), all = TRUE), list(df_exp_long, df_fundrenew_long, df_future_long, df_happeing_long))
 
+# 
