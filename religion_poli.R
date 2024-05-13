@@ -23,7 +23,7 @@ data_merged_party_shifted <- data_merged_party %>%
 # Visualize by political party
 data_merged_party_shifted <- data_merged_party_shifted %>%
   mutate(color = ifelse(Party == "Democratic", "blue",
-                        ifelse(Party == "Republican", "red", "green")))
+                        ifelse(Party == "Republican", "red", "purple")))
 
 # Prepare the dataset for plotting by creating hover info
 party_plot <- data_merged_party_shifted %>%
