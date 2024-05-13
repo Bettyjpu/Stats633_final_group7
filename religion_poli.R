@@ -46,3 +46,5 @@ map_party <- ggplot(party_plot, aes(fill = color)) +
 girafe(ggobj = map_party) %>%
   girafe_options(opts_hover(css = "fill:cyan;"), 
                  opts_zoom(max = 10))
+
+
