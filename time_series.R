@@ -5,6 +5,8 @@ library(readxl)
 library(dplyr)
 library(ggplot2)
 library(plotly)
+library(tidyr)
+library(reshape2)
 
 # Read Data and pivot to long format
 df_exp <- read_excel("Exp.xlsx")
@@ -19,7 +21,109 @@ df_future_long <- pivot_longer(df_future, cols = -State, names_to = "year", valu
 df_happening <- read_excel("Happening.xlsx")
 df_happeing_long <- pivot_longer(df_happening, cols = -State, names_to = "year", values_to = "happening")
 
-# Merge the datasets by the variables "State" and "Year"
-df_merged_ts <- Reduce(function(x, y) merge(x, y, by = c("State", "year"), all = TRUE), list(df_exp_long, df_fundrenew_long, df_future_long, df_happeing_long))
+df_governer <- read_excel("Governer.xlsx")
+df_governer_long <- pivot_longer(df_governer, cols = -State, names_to = "year", values_to = "governer")
+  
+df_harmus <- read_excel("harmus.xlsx")
+df_harmus_long <- pivot_longer(df_harmus, cols = -State, names_to = "year", values_to = "harmus")
+  
+df_human <- read_excel("human.xlsx")
+df_human_long <- pivot_longer(df_human, cols = -State, names_to = "year", values_to = "human")
 
-# 
+  
+df_timing <- read_excel("timing.xlsx")
+df_timing_long <- pivot_longer(df_timing, cols = -State, names_to = "year", values_to = "timing")
+
+
+# Merge the datasets by the variables "State" and "Year"
+df_merged_ts <- Reduce(function(x, y) merge(x, y, by = c("State", "year"), all = TRUE), list(df_exp_long, df_fundrenew_long, df_future_long, df_happeing_long,
+                                                                                             df_governer_long, df_harmus_long, df_human_long,
+                                                                                             df_timing_long))
+
+df_plot <- melt(df_merged_ts, id.vars=c("State", "year"), variable.name="question")
+
+# Data for plotting: df_merged_ts
+
+df_plot %>%
+  filter(year == 2010)%>%
+  # make the filter above as input in shinyapp
+  group_by(question)%>%
+  summarise(min = min(value), max = max(value)) %>%
+  plot_ly() %>%
+  add_segments(
+    x = ~min, y = ~question,
+    xend = ~max, yend = ~question,
+    color = I("gray"), showlegend = TRUE
+  ) %>%
+  add_markers(
+    x = ~min, y = ~question,
+    color = I("blue"),
+    name = "minimum"
+  ) %>%
+  add_markers(
+    x = ~max, y = ~question, 
+    color = I("red"),
+    name  = "maximum"
+  ) %>%
+  layout(xaxis = list(title = "Americans' opinion on climate change in %"))
+
+
+
+library(shiny)
+library(dplyr)
+library(plotly)
+
+# Assuming df_plot is available in your shiny app
+
+ui <- fluidPage(
+  titlePanel("Climate Change Opinion Analysis"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("year", "Select Year:", min = 2010, max = 2023, value = 2010)
+    ),
+    mainPanel(
+      plotlyOutput("opinion_plot")
+    )
+  )
+)
+
+server <- function(input, output) {
+  
+  filtered_data <- reactive({
+    df_plot %>%
+      filter(year == input$year) %>%
+      group_by(question) %>%
+      summarise(min = min(value), max = max(value))
+  })
+  
+  output$opinion_plot <- renderPlotly({
+    plot_ly(filtered_data(), type = 'scatter', mode = 'markers+lines') %>%
+      add_segments(
+        x = ~min, y = ~question,
+        xend = ~max, yend = ~question,
+        color = I("gray"), showlegend = TRUE
+      ) %>%
+      add_markers(
+        x = ~min, y = ~question,
+        color = I("blue"),
+        name = "minimum"
+      ) %>%
+      add_markers(
+        x = ~max, y = ~question, 
+        color = I("red"),
+        name  = "maximum"
+      ) %>%
+      layout(
+        xaxis = list(title = "Americans' opinion on climate change in %")
+      )
+  })
+}
+
+shinyApp(ui = ui, server = server)
+
+
+
+
+
+
