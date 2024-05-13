@@ -40,32 +40,47 @@ df_merged_ts <- Reduce(function(x, y) merge(x, y, by = c("State", "year"), all =
                                                                                              df_governer_long, df_harmus_long, df_human_long,
                                                                                              df_timing_long))
 
-df_plot <- melt(df_merged_ts, id.vars=c("State", "year"), variable.name="question")
+df_plot_ts <- melt(df_merged_ts, id.vars=c("State", "year"), variable.name="question")
 
-# Data for plotting: df_merged_ts
 
-df_plot %>%
-  filter(year == 2010)%>%
-  # make the filter above as input in shinyapp
-  group_by(question)%>%
-  summarise(min = min(value), max = max(value)) %>%
+df_plot_ts %>%
+  group_by(question, year) %>%
+  summarise(min = min(value), max = max(value), .groups = 'drop') %>%
+  ungroup() %>%
+  mutate(question_year = interaction(question, year)) %>%
+  mutate(question_year = forcats::fct_reorder(question_year, min))%>%
   plot_ly() %>%
   add_segments(
-    x = ~min, y = ~question,
-    xend = ~max, yend = ~question,
-    color = I("gray"), showlegend = TRUE
+    x = ~min, y = ~question_year,
+    xend = ~max, yend = ~question_year,
+    color = ~year, showlegend = TRUE
   ) %>%
   add_markers(
-    x = ~min, y = ~question,
-    color = I("blue"),
-    name = "minimum"
+    x = ~min, y = ~question_year,
+    symbol = I("square"),
+    color = ~year,
+    name = "minimum %",
+    legendgroup = ~year,
+    showlegend = FALSE,
+    text = ~paste0(~State, ": ", min, "% of state population"),
+    hoverinfo = "text"
   ) %>%
   add_markers(
-    x = ~max, y = ~question, 
-    color = I("red"),
-    name  = "maximum"
+    x = ~max, y = ~question_year, 
+    color = ~year,
+    name  = "maximum %",
+    legendgroup = ~year,
+    showlegend = FALSE,
+    text = ~paste0(~State, ": ", max, "% of state population"),
+    hoverinfo = "text"
   ) %>%
-  layout(xaxis = list(title = "Americans' opinion on climate change in %"))
+  layout(yaxis = list(title = "Questions and Years"),
+         xaxis = list(title = "Americans' opinion on climate change in %"))
+
+
+
+
+
 
 
 
@@ -91,7 +106,7 @@ ui <- fluidPage(
 server <- function(input, output) {
   
   filtered_data <- reactive({
-    df_plot %>%
+    df_plot_ts %>%
       filter(year == input$year) %>%
       group_by(question) %>%
       summarise(min = min(value), max = max(value))
