@@ -161,3 +161,8 @@ girafe(ggobj = map_worried) %>%
   girafe_options(opts_hover(css = "fill:cyan;"), 
                  opts_zoom(max = 10))
 
+
+
+
+
+
