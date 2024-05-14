@@ -65,7 +65,8 @@ server <- function(input, output) {
         name  = "maximum"
       ) %>%
       layout(
-        xaxis = list(title = "Americans' opinion on climate change in %")
+        xaxis = list(title = "Proportion of people answering 'yes' (%)"),
+        yaxis = list(title="Climate Change Questions")
       )
   })
 }
