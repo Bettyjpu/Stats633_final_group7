@@ -79,7 +79,13 @@ knitr::opts_chunk$set(echo = FALSE)
 
 
 
-## 4.3 Time Series Plot1
+## 4.3 Plot time series (select state)
+
+- There is limited increases (or even declines) in climate views
+in states with economies closely tied to fossil fuels, such as Wyoming, the Dakotas, and West Virginia. Concerns about job security and economic activity can influence individuals’ climate view.
+
+- The influence of increased communication efforts is influencial on people's beliefs (happening) and risk perceptions (worried, harm personal) but less evident on public support for climate policies and on the selfreported discussion frequency with family and friends, which increased only 3 pp on average across all states during the past five years.
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(shiny)
 library(dplyr)
@@ -119,7 +125,8 @@ server <- function(input, output) {
       summarise(min_value = min(value),
                 max_value = max(value),
                 min_year = year[which.min(value)],
-                max_year = year[which.max(value)])
+                max_year = year[which.max(value)],
+                diff = max_value - min_value)
   })
   
   output$state_opinion_plot <- renderPlotly({
@@ -134,14 +141,14 @@ server <- function(input, output) {
         color = I("blue"),
         name = "minimum",
         hoverinfo = "text",
-        text = ~paste("Year:", min_year, "<br>Value:", min_value)
+        text = ~paste("Year:", min_year, "<br>Value:", min_value, "<br>Diff:", diff)
       ) %>%
       add_markers(
         x = ~max_value, y = ~Question, 
         color = I("red"),
         name  = "maximum",
         hoverinfo = "text",
-        text = ~paste("Year:", max_year, "<br>Value:", max_value)
+        text = ~paste("Year:", max_year, "<br>Value:", max_value, "<br>Diff:", diff)
       ) %>%
       layout(
         xaxis = list(title = "Proportion of people answering 'yes' (%)"),
@@ -156,7 +163,10 @@ shinyApp(ui = ui, server = server)
 ```
 
 
-## 4.4 Time Series Plot2
+## 4.4 Plot time series (select year)
+
+Many state-level climate opinion shifts are consistent with observed heterogeneous climate impacts relating to heat, drought, and flooding over time. California and Connecticut showed the largest changes over the 13-year interval for the question about personal harm, with 22% more residents in both states saying they had been personally harmed by global warming. Risk perceptions have also accelerated in the years prior to 2020, with Florida, Virginia, and North Carolina in the south showing large increases in perceived personal harm from global warming (+13 pp for each). Many of these states experienced increases in coastal flooding and other exceptionally destructive weather events since 2008, such as extreme heat, drought, wildfires and hurricanes. [Reference: https://pubmed.ncbi.nlm.nih.gov/34006886/](https://pubmed.ncbi.nlm.nih.gov/34006886/)
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 # Plot average % by year
 
@@ -167,7 +177,6 @@ library(ggplot2)
 library(plotly)
 library(tidyr)
 library(reshape2)
-library(shiny)
 
 # Read Data and pivot to long format
 df_ts <- read_excel("YCOM_ts.xlsx")%>%
@@ -180,6 +189,9 @@ df_ts_long <- pivot_longer(df_ts,
                            values_to = "value")
 
 
+library(shiny)
+library(dplyr)
+library(plotly)
 
 # Assuming df_plot is available in your shiny app
 
@@ -202,12 +214,11 @@ server <- function(input, output) {
     df_ts_long %>%
       filter(year == input$year) %>%
       group_by(Question) %>%
-      summarise(min= min(value), max = max(value))
+      summarise(min= min(value), max = max(value), min_state = State[which.min(value)],max_state = State[which.max(value)], diff = max - min)
   })
   
-  
   output$opinion_plot <- renderPlotly({
-    plot_ly(filtered_data(), type = 'scatter', mode = 'markers+lines') %>%
+    plot_ly(filtered_data(), type = 'scatter', mode = 'markers+lines', hoverinfo = 'text') %>%
       add_segments(
         x = ~min, y = ~Question,
         xend = ~max, yend = ~Question,
@@ -216,16 +227,17 @@ server <- function(input, output) {
       add_markers(
         x = ~min, y = ~Question,
         color = I("blue"),
-        name = "minimum"
+        name = "minimum",
+        text = ~paste("State:", min_state, "<br>Value:", min,"<br>Diff:", diff)
       ) %>%
       add_markers(
         x = ~max, y = ~Question, 
         color = I("red"),
-        name  = "maximum"
+        name  = "maximum",
+        text = ~paste("State:", max_state, "<br>Value:", max,"<br>Diff:", diff)
       ) %>%
       layout(
-        xaxis = list(title = "Proportion of people answering 'yes' (%)",
-                     range = c(min, max)),
+        xaxis = list(title = "Proportion of people answering 'yes' (%)"),
         yaxis = list(title="Climate Change Questions")
       )
   })
