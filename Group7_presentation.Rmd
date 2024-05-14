@@ -205,6 +205,7 @@ server <- function(input, output) {
       summarise(min= min(value), max = max(value))
   })
   
+  
   output$opinion_plot <- renderPlotly({
     plot_ly(filtered_data(), type = 'scatter', mode = 'markers+lines') %>%
       add_segments(
@@ -223,7 +224,8 @@ server <- function(input, output) {
         name  = "maximum"
       ) %>%
       layout(
-        xaxis = list(title = "Proportion of people answering 'yes' (%)"),
+        xaxis = list(title = "Proportion of people answering 'yes' (%)",
+                     range = c(min, max)),
         yaxis = list(title="Climate Change Questions")
       )
   })
