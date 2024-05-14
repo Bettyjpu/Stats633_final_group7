@@ -1,0 +1,237 @@
+---
+title: 'Group 7: Visualization of Climate Opinion in U.S. States'
+author: "Jun Pu, Jenny Ding, Christy Yang"
+date: "2024-05-14"
+output: ioslides_presentation
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## 1. Question
+### What does climate awareness and opinion look like in different states and over time?
+
+- Is high level of awareness/ concern of climate change related to certain demographic features of a state, e.g. income level, education level, etc.?
+- As there’re more extreme climate events, do awareness of climate change increase over time?
+
+### Why is it important?
+
+- Public opinion about global warming is an important influence on decision making about policies to reduce global warming or prepare for the impacts, but American opinions vary widely depending on where people live.
+
+- Higher level of public concern and support for environmental policies might be a reflection of state policies, and provides policy insights regarding climate change.
+
+## 2. Hypothesis
+
+- Higher percentage of residents in coastal states will have direct experience with extreme climate events and global warming, thus more likely to be worried about climate change.
+
+- In states with higher percentage of people with higher education degree, residents are likely to be aware of climate change issues and agree with more policy reforms to tackle climate change issues.
+
+- We would likely observe an increase in climate awareness over the past decade.
+
+
+## 3. Data
+
+- [Yale Climate Opinion Maps (YCOM), 2010 - 2023](https://climatecommunication.yale.edu/visualizations-data/ycom-us/)
+
+- [American Community Survey (ACS), 2022](https://www.census.gov/programs-surveys/acs)
+
+- Which data sets are you using? What are the source?
+- What are the variables? What do they measure? 
+- What may be the potential weakness?
+- Which variables are proxies?
+
+## 3.1 YCOM, 2010 - 2023
+- `YCOM` is collected through a national survey and includes data from 2010-2023 for 16 state-level climate opinions.
+
+- The estimates are derived from a large national survey dataset (n>31,000), along with demographic and geographic population characteristics.
+
+- Survey questions include 4 categories: Beliefs, Risk Perceptions, Policy Support, Behaviors.
+  - Example question: Do you think that global warming is happening?
+  - Multiple choice answers: Yes / No / Don't Know
+  - Data is coded as percentage answering *Yes* in a state.
+
+## 3.2 ACS, 2022
+- `ACS` is the most comprehensive dataset that covers a wide range of Demographic and Housing Charactersitics including medium income, education level, etc.
+- `ACS` also includes geometry for each state and we used that for mapping.
+- With `tidycensus`, we are able to directly select variables of interest and obtain data frames for a specific year.
+- The original ACS data is in counts and we standardized them to percentage.
+  - Percentage = (Count / Population by ACS)*100
+
+
+## 4. Visualizations
+- What is the Relationship Between State-Level Public Opinions on Climate Change Issues (2022) and Demographic Information (2023)? 
+  - 4.1: Map of ACS Demographics
+  - 4.2: Map of Climate Opinion
+- How Do State-Level Extremes in Public Opinion on Climate Change Issues Vary by Year (2010-2023)?
+  - 4.3: dumbbell plot with input year
+- What is the Range of Public Opinion on Climate Change Issues Within Specific States Across Multiple Years (2010-2023)?
+  - 4.4: dumbbell plot with input state
+
+## 4.1 Map of Demographic Characteristics (2022)
+
+```{r eruptions}
+
+```
+
+## 4.2 Map of Cliamte Opinion (2023)
+
+
+
+## 4.3 Time Series Plot1
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(shiny)
+library(dplyr)
+library(plotly)
+library(readxl)
+library(tidyr)
+
+# Read Data and pivot to long format
+df_ts <- read_excel("YCOM_ts.xlsx") %>%
+  select(-c("State code"))
+
+# Pivot the dataset to long format
+df_ts_long <- pivot_longer(df_ts, 
+                           cols = -c(State, Question), 
+                           names_to = "year", 
+                           values_to = "value")
+
+ui <- fluidPage(
+  titlePanel("Climate Change Opinion Analysis by State"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("state", "Select State:", choices = unique(df_ts_long$State))
+    ),
+    mainPanel(
+      plotlyOutput("state_opinion_plot")
+    )
+  )
+)
+
+server <- function(input, output) {
+  
+  filtered_data <- reactive({
+    df_ts_long %>%
+      filter(State == input$state) %>%
+      group_by(Question) %>%
+      summarise(min_value = min(value),
+                max_value = max(value),
+                min_year = year[which.min(value)],
+                max_year = year[which.max(value)])
+  })
+  
+  output$state_opinion_plot <- renderPlotly({
+    plot_ly(filtered_data(), type = 'scatter', mode = 'markers+lines') %>%
+      add_segments(
+        x = ~min_value, y = ~Question,
+        xend = ~max_value, yend = ~Question,
+        color = I("gray"), showlegend = TRUE
+      ) %>%
+      add_markers(
+        x = ~min_value, y = ~Question,
+        color = I("blue"),
+        name = "minimum",
+        hoverinfo = "text",
+        text = ~paste("Year:", min_year, "<br>Value:", min_value)
+      ) %>%
+      add_markers(
+        x = ~max_value, y = ~Question, 
+        color = I("red"),
+        name  = "maximum",
+        hoverinfo = "text",
+        text = ~paste("Year:", max_year, "<br>Value:", max_value)
+      ) %>%
+      layout(
+        xaxis = list(title = "Proportion of people answering 'yes' (%)"),
+        yaxis = list(title = "Climate Change Questions")
+      )
+  })
+}
+
+shinyApp(ui = ui, server = server)
+
+
+```
+
+
+## 4.4 Time Series Plot2
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Plot average % by year
+
+# Load packages
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(plotly)
+library(tidyr)
+library(reshape2)
+library(shiny)
+
+# Read Data and pivot to long format
+df_ts <- read_excel("YCOM_ts.xlsx")%>%
+  select(-c("State code"))
+
+# Pivot the dataset to long format
+df_ts_long <- pivot_longer(df_ts, 
+                           cols = -c(State, Question), 
+                           names_to = "year", 
+                           values_to = "value")
+
+
+
+# Assuming df_plot is available in your shiny app
+
+ui <- fluidPage(
+  titlePanel("Climate Change Opinion Analysis"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("year", "Select Year:", min = 2010, max = 2023, value = 2010)
+    ),
+    mainPanel(
+      plotlyOutput("opinion_plot")
+    )
+  )
+)
+
+server <- function(input, output) {
+  
+  filtered_data <- reactive({
+    df_ts_long %>%
+      filter(year == input$year) %>%
+      group_by(Question) %>%
+      summarise(min= min(value), max = max(value))
+  })
+  
+  output$opinion_plot <- renderPlotly({
+    plot_ly(filtered_data(), type = 'scatter', mode = 'markers+lines') %>%
+      add_segments(
+        x = ~min, y = ~Question,
+        xend = ~max, yend = ~Question,
+        color = I("gray"), showlegend = TRUE
+      ) %>%
+      add_markers(
+        x = ~min, y = ~Question,
+        color = I("blue"),
+        name = "minimum"
+      ) %>%
+      add_markers(
+        x = ~max, y = ~Question, 
+        color = I("red"),
+        name  = "maximum"
+      ) %>%
+      layout(
+        xaxis = list(title = "Proportion of people answering 'yes' (%)"),
+        yaxis = list(title="Climate Change Questions")
+      )
+  })
+}
+
+shinyApp(ui = ui, server = server)
+
+
+```
+
+
