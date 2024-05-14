@@ -48,7 +48,7 @@ df_plot_ts %>%
   summarise(min = min(value), max = max(value), .groups = 'drop') %>%
   ungroup() %>%
   mutate(question_year = interaction(question, year)) %>%
-  mutate(question_year = forcats::fct_reorder(question_year, min))%>%
+  mutate(question_year = forcats::fct_reorder(question_year, min), year = forcats::fct_reorder(year, min))%>%
   plot_ly() %>%
   add_segments(
     x = ~min, y = ~question_year,
