@@ -20,7 +20,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 #### Why is it important?
 - Public opinion about global warming is an important influence on decision making about policies to reduce global warming or prepare for the impacts.
-- While researchers find increases in global warming issue importance and perceived harm in different states, policy support increased more in certain states (California and New York) than elsewhere (Marlon and Wang).
+- While researchers find increases in global warming issue importance and perceived harm in different states, policy support increased more in certain states (California and New York) than elsewhere ([Marlon and Wang](https://iopscience.iop.org/article/10.1088/1748-9326/aca702/pdf)).
 
 ## 2. Hypothesis
 
