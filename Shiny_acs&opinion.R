@@ -177,7 +177,7 @@ server <- function(input, output) {
            caption = "Data source: 2023 Yale Program on Climate Change Communication",
            fill = "% state population") +
       theme_void() +
-      theme(plot.title = element_text(size = 12))
+      theme(plot.title = element_text(size = 10))
     
     girafe(ggobj = map1) |>
       girafe_options(opts_hover(css = "fill:cyan;"), 
