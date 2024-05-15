@@ -55,7 +55,7 @@ knitr::opts_chunk$set(echo = FALSE)
   - Percentage = (Count / Population by ACS)*100
   
 ## 3.3 Potential Limitations
-- The demographic characteristics from the ACS are from the year 2023, and the climate opinion data is also from 2023.
+- The demographic characteristics from the ACS are from the year 2022, and the climate opinion data is also from 2023.
 - Both the climate opinion data and ACS data are aggregated estimations that overlook differences among individual states.
 
 ## 4. Visualizations
@@ -300,8 +300,92 @@ shinyApp(ui = ui, server = server)
 
 ```
 
+## 4.2 Plot time series (select year)
 
-## 4.2 Plot time series (select state)
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Plot average % by year
+
+# Load packages
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(plotly)
+library(tidyr)
+library(reshape2)
+
+# Read Data and pivot to long format
+df_ts <- read_excel("YCOM_ts.xlsx")%>%
+  select(-c("State code"))
+
+# Pivot the dataset to long format
+df_ts_long <- pivot_longer(df_ts, 
+                           cols = -c(State, Question), 
+                           names_to = "year", 
+                           values_to = "value")
+
+
+library(shiny)
+library(dplyr)
+library(plotly)
+
+# Assuming df_plot is available in your shiny app
+
+ui <- fluidPage(
+  titlePanel("Climate Change Opinion Analysis by Year"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("year", "Select Year:", min = 2010, max = 2023, value = 2010)
+    ),
+    mainPanel(
+      tags$div(
+        style = "margin: 10px;"
+      ),
+      plotlyOutput("opinion_plot")
+    )
+  )
+)
+
+server <- function(input, output) {
+  
+  filtered_data <- reactive({
+    df_ts_long %>%
+      filter(year == input$year) %>%
+      group_by(Question) %>%
+      summarise(min= min(value), max = max(value), min_state = State[which.min(value)],max_state = State[which.max(value)], diff = max - min)
+  })
+  
+  output$opinion_plot <- renderPlotly({
+    plot_ly(filtered_data(), type = 'scatter', mode = 'markers+lines', hoverinfo = 'text') %>%
+      add_segments(
+        x = ~min, y = ~Question,
+        xend = ~max, yend = ~Question,
+        color = I("gray"), showlegend = TRUE
+      ) %>%
+      add_markers(
+        x = ~min, y = ~Question,
+        color = I("blue"),
+        name = "minimum",
+        text = ~paste("State:", min_state, "<br>Value:", min,"<br>Diff:", diff)
+      ) %>%
+      add_markers(
+        x = ~max, y = ~Question, 
+        color = I("red"),
+        name  = "maximum",
+        text = ~paste("State:", max_state, "<br>Value:", max,"<br>Diff:", diff)
+      ) %>%
+      layout(
+        xaxis = list(title = "Proportion of people answering 'yes' (%)"),
+        yaxis = list(title="Climate Change Questions")
+      )
+  })
+}
+
+shinyApp(ui = ui, server = server)
+
+```
+
+## 4.3 Plot time series (select state)
 
 ```{r prec, echo=FALSE, message=FALSE, warning=FALSE}
 library(shiny)
@@ -329,13 +413,7 @@ ui <- fluidPage(
     ),
     mainPanel(
       tags$div(
-        style = "margin: 10px;",
-        tags$p("
-        1. There is limited increases (or even declines) in climate views
-in states with economies closely tied to fossil fuels, such as Wyoming, the Dakotas, and West Virginia. Concerns about job security and economic activity can influence individuals’ climate view.
-2. The influence of increased communication efforts is influencial on people's beliefs (happening) and risk perceptions (worried, harm personal) but less evident on public support for climate policies and on the selfreported discussion frequency with family and friends, which increased only 3 pp on average across all states during the past five years."),
-        tags$p("Reference:"),
-        tags$a(href = "https://pubmed.ncbi.nlm.nih.gov/34006886/", "https://pubmed.ncbi.nlm.nih.gov/34006886/")
+        style = "margin: 10px;"
       ),
       plotlyOutput("state_opinion_plot")
     )
@@ -388,93 +466,5 @@ shinyApp(ui = ui, server = server)
 
 ```
 
-
-## 4.3 Plot time series (select year)
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-# Plot average % by year
-
-# Load packages
-library(readxl)
-library(dplyr)
-library(ggplot2)
-library(plotly)
-library(tidyr)
-library(reshape2)
-
-# Read Data and pivot to long format
-df_ts <- read_excel("YCOM_ts.xlsx")%>%
-  select(-c("State code"))
-
-# Pivot the dataset to long format
-df_ts_long <- pivot_longer(df_ts, 
-                           cols = -c(State, Question), 
-                           names_to = "year", 
-                           values_to = "value")
-
-
-library(shiny)
-library(dplyr)
-library(plotly)
-
-# Assuming df_plot is available in your shiny app
-
-ui <- fluidPage(
-  titlePanel("Climate Change Opinion Analysis by Year"),
-  
-  sidebarLayout(
-    sidebarPanel(
-      sliderInput("year", "Select Year:", min = 2010, max = 2023, value = 2010)
-    ),
-    mainPanel(
-      tags$div(
-        style = "margin: 10px;",
-        tags$p("Many state-level climate opinion shifts are consistent with observed heterogeneous climate impacts relating to heat, drought, and flooding over time. California and Connecticut showed the largest changes over the 13-year interval for the question about personal harm, with 22% more residents in both states saying they had been personally harmed by global warming. Risk perceptions have also accelerated in the years prior to 2020, with Florida, Virginia, and North Carolina in the south showing large increases in perceived personal harm from global warming (+13 pp for each). Many of these states experienced increases in coastal flooding and other exceptionally destructive weather events since 2008, such as extreme heat, drought, wildfires and hurricanes."),
-        tags$p("Reference:"),
-        tags$a(href = "https://pubmed.ncbi.nlm.nih.gov/34006886/", "https://pubmed.ncbi.nlm.nih.gov/34006886/")
-      ),
-      plotlyOutput("opinion_plot")
-    )
-  )
-)
-
-server <- function(input, output) {
-  
-  filtered_data <- reactive({
-    df_ts_long %>%
-      filter(year == input$year) %>%
-      group_by(Question) %>%
-      summarise(min= min(value), max = max(value), min_state = State[which.min(value)],max_state = State[which.max(value)], diff = max - min)
-  })
-  
-  output$opinion_plot <- renderPlotly({
-    plot_ly(filtered_data(), type = 'scatter', mode = 'markers+lines', hoverinfo = 'text') %>%
-      add_segments(
-        x = ~min, y = ~Question,
-        xend = ~max, yend = ~Question,
-        color = I("gray"), showlegend = TRUE
-      ) %>%
-      add_markers(
-        x = ~min, y = ~Question,
-        color = I("blue"),
-        name = "minimum",
-        text = ~paste("State:", min_state, "<br>Value:", min,"<br>Diff:", diff)
-      ) %>%
-      add_markers(
-        x = ~max, y = ~Question, 
-        color = I("red"),
-        name  = "maximum",
-        text = ~paste("State:", max_state, "<br>Value:", max,"<br>Diff:", diff)
-      ) %>%
-      layout(
-        xaxis = list(title = "Proportion of people answering 'yes' (%)"),
-        yaxis = list(title="Climate Change Questions")
-      )
-  })
-}
-
-shinyApp(ui = ui, server = server)
-
-```
 
 ## Thank you and Q&A
